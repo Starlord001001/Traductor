@@ -47,43 +47,70 @@ public class MainActivity extends AppCompatActivity {
 
         languageIdentifier = LanguageIdentification.getClient(
                 new LanguageIdentificationOptions.Builder()
-                        .setConfidenceThreshold(0.34f)
+                        .setConfidenceThreshold(0.20f)
                         .build());
     }
 
     private void identifyLanguageAndTranslate(String text, TextView translatedTextView) {
         languageIdentifier.identifyLanguage(text)
-                .addOnSuccessListener(new OnSuccessListener<String>() {
-                    @Override
-                    public void onSuccess(String languageCode) {
+        .addOnSuccessListener(new OnSuccessListener<String>() {
+            @Override
+            public void onSuccess(String languageCode) {
+                if (languageCode == null || languageCode.equals("und")) {
+                    translatedTextView.setText("Idioma no reconocido o no soportado.");
+                    return;
+                }
 
-                        translateText(text, translatedTextView);
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        translatedTextView.setText("Error al identificar el idioma: " + e.getMessage());
-                    }
-                });
+                if (!languageCode.equals(TranslateLanguage.ENGLISH)) {
+                    TranslatorOptions options = new TranslatorOptions.Builder()
+                            .setSourceLanguage(languageCode)
+                            .setTargetLanguage(TranslateLanguage.ENGLISH)
+                            .build();
+                    translator = Translation.getClient(options);
+
+                    translator.downloadModelIfNeeded()
+                            .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                @Override
+                                public void onSuccess(Void unused) {
+                                    translateText(text, translatedTextView);
+                                }
+                            })
+                            .addOnFailureListener(new OnFailureListener() {
+                                @Override
+                                public void onFailure(@NonNull Exception e) {
+                                    translatedTextView.setText("Error al descargar el modelo: " + e.getMessage());
+                                }
+                            });
+                } else {
+                    translatedTextView.setText(text); // No se necesita traducción
+                }
+            }
+        })
+        .addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                translatedTextView.setText("Error al identificar el idioma: " + e.getMessage());
+            }
+        });
     }
 
     private void translateText(String text, TextView translatedTextView) {
         translator.translate(text)
-                .addOnSuccessListener(
-                        new OnSuccessListener<String>() {
-                            @Override
-                            public void onSuccess(String translatedText) {
-                                translatedTextView.setText(translatedText);
-                            }
-                        })
-                .addOnFailureListener(
-                        new OnFailureListener() {
-                            @Override
-                            public void onFailure(@NonNull Exception e) {
-                                translatedTextView.setText("Error: " + e.getMessage());
-                            }
-                        });
+            .addOnSuccessListener(
+                    new OnSuccessListener<String>() {
+                @Override
+                public void onSuccess(String translatedText) {
+                    translatedTextView.setText(translatedText);
+                }
+            })
+            .addOnFailureListener(
+
+                new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        translatedTextView.setText("Error: " + e.getMessage());
+                    }
+            });
     }
 
     @Override
