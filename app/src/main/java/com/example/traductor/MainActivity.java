@@ -18,6 +18,7 @@ import com.google.mlkit.nl.translate.Translation;
 import com.google.mlkit.nl.translate.Translator;
 import com.google.mlkit.nl.translate.TranslatorOptions;
 
+
 public class MainActivity extends AppCompatActivity {
 
     private Translator translator;

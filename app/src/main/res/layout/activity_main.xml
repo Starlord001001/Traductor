@@ -1,5 +1,6 @@
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
@@ -15,11 +16,19 @@
         android:id="@+id/translateButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Translate"/>
+        android:text="Translate" />
+
+    <!--LottieAnimationView-->
+    <com.airbnb.lottie.LottieAnimationView
+        android:id="@+id/lottieAnimationView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:lottie_autoPlay="false"
+        app:lottie_loop="true"
+        app:lottie_fileName="animation" />
 
     <TextView
         android:id="@+id/translatedText"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
-
+        android:layout_height="wrap_content" />
 </LinearLayout>
