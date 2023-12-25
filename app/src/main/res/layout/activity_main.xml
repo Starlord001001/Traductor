@@ -12,6 +12,12 @@
         android:layout_height="wrap_content"
         android:hint="Enter text"/>
 
+    <Spinner
+        android:id="@+id/languageSpinner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
+
     <Button
         android:id="@+id/translateButton"
         android:layout_width="wrap_content"
