@@ -65,42 +65,42 @@ public class TranslationService extends Service {
 
     public void identifyLanguageAndTranslate(String text, final TextView translatedTextView, String targetLanguageCode) {
         languageIdentifier.identifyLanguage(text)
-                .addOnSuccessListener(new OnSuccessListener<String>() {
-                    @Override
-                    public void onSuccess(String languageCode) {
-                        if (languageCode == null || languageCode.equals("und")) {
-                            translatedTextView.setText("Idioma no reconocido o no soportado.");
-                            return;
-                        }
-
-                        TranslatorOptions options = new TranslatorOptions.Builder()
-                                .setSourceLanguage(languageCode)
-                                .setTargetLanguage(targetLanguageCode)
-                                .build();
-                        translator = Translation.getClient(options);
-
-                        translator.downloadModelIfNeeded()
-                                .addOnSuccessListener(new OnSuccessListener<Void>() {
-                                    @Override
-                                    public void onSuccess(Void unused) {
-                                        // Traduce el texto
-                                        translateText(text, translatedTextView);
-                                    }
-                                })
-                                .addOnFailureListener(new OnFailureListener() {
-                                    @Override
-                                    public void onFailure(@NonNull Exception e) {
-                                        translatedTextView.setText("Error al descargar el modelo: " + e.getMessage());
-                                    }
-                                });
+            .addOnSuccessListener(new OnSuccessListener<String>() {
+                @Override
+                public void onSuccess(String languageCode) {
+                    if (languageCode == null || languageCode.equals("und")) {
+                        translatedTextView.setText("Idioma no reconocido o no soportado.");
+                        return;
                     }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        translatedTextView.setText("Error al identificar el idioma: " + e.getMessage());
-                    }
-                });
+
+                    TranslatorOptions options = new TranslatorOptions.Builder()
+                            .setSourceLanguage(languageCode)
+                            .setTargetLanguage(targetLanguageCode)
+                            .build();
+                    translator = Translation.getClient(options);
+
+                    translator.downloadModelIfNeeded()
+                        .addOnSuccessListener(new OnSuccessListener<Void>() {
+                            @Override
+                            public void onSuccess(Void unused) {
+                                // Traduce el texto
+                                translateText(text, translatedTextView);
+                            }
+                        })
+                        .addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                translatedTextView.setText("Error al descargar el modelo: " + e.getMessage());
+                            }
+                        });
+                }
+            })
+            .addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    translatedTextView.setText("Error al identificar el idioma: " + e.getMessage());
+                }
+            });
     }
 
     private void translateText(String text, final TextView translatedTextView) {
