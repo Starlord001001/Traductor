@@ -42,22 +42,21 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
         EditText inputText = findViewById(R.id.editText);
         TextView translatedText = findViewById(R.id.translatedText);
-
-        // Configurar el Spinner para la selección de idioma
         setupLanguageSpinner();
-
-        // Vincula el servicio cuando se inicia la actividad
         Intent serviceIntent = new Intent(this, TranslationService.class);
         bindService(serviceIntent, serviceConnection, Context.BIND_AUTO_CREATE);
 
         findViewById(R.id.translateButton).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String text = inputText.getText().toString();
-                identifyLanguageAndTranslate(text, translatedText);
+                if (isServiceBound) {
+                    String text = inputText.getText().toString();
+                    translationService.identifyLanguageAndTranslate(text, translatedText, targetLanguageCode);
+                } else {
+                    Toast.makeText(MainActivity.this, "Servicio no vinculado", Toast.LENGTH_SHORT).show();
+                }
             }
         });
 
@@ -70,7 +69,6 @@ public class MainActivity extends AppCompatActivity {
     private void setupLanguageSpinner() {
         Spinner languageSpinner = findViewById(R.id.languageSpinner);
 
-        // Lista de códigos de idioma compatibles con ML Kit
         final List<String> languageCodes = Arrays.asList(
                 TranslateLanguage.AFRIKAANS,
                 TranslateLanguage.ARABIC,
@@ -208,70 +206,9 @@ public class MainActivity extends AppCompatActivity {
         Toast.makeText(this, targetLanguageCode, Toast.LENGTH_SHORT).show();
     }
 
-
-    public void identifyLanguageAndTranslate(String text, final TextView translatedTextView) {
-        languageIdentifier.identifyLanguage(text)
-                .addOnSuccessListener(new OnSuccessListener<String>() {
-                    @Override
-                    public void onSuccess(String languageCode) {
-                        if (languageCode == null || languageCode.equals("und")) {
-                            translatedTextView.setText("Idioma no reconocido o no soportado.");
-                            return;
-                        }
-
-                        // Crea el traductor con el idioma de origen identificado y el de destino seleccionado
-                        TranslatorOptions options = new TranslatorOptions.Builder()
-                                .setSourceLanguage(languageCode)
-                                .setTargetLanguage(targetLanguageCode)
-                                .build();
-                        translator = Translation.getClient(options);
-
-                        translator.downloadModelIfNeeded()
-                                .addOnSuccessListener(new OnSuccessListener<Void>() {
-                                    @Override
-                                    public void onSuccess(Void unused) {
-                                        // Traduce el texto
-                                        translateText(text, translatedTextView);
-                                    }
-                                })
-                                .addOnFailureListener(new OnFailureListener() {
-                                    @Override
-                                    public void onFailure(@NonNull Exception e) {
-                                        translatedTextView.setText("Error al descargar el modelo: " + e.getMessage());
-                                    }
-                                });
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        translatedTextView.setText("Error al identificar el idioma: " + e.getMessage());
-                    }
-                });
-    }
-
-    private void translateText(String text, TextView translatedTextView) {
-        translator.translate(text)
-                .addOnSuccessListener(
-                        new OnSuccessListener<String>() {
-                            @Override
-                            public void onSuccess(String translatedText) {
-                                translatedTextView.setText(translatedText);
-                            }
-                        })
-                .addOnFailureListener(
-                        new OnFailureListener() {
-                            @Override
-                            public void onFailure(@NonNull Exception e) {
-                                translatedTextView.setText("Error: " + e.getMessage());
-                            }
-                        });
-    }
-
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        // Desvincula el servicio cuando se destruye la actividad
         if (isServiceBound) {
             unbindService(serviceConnection);
             isServiceBound = false;

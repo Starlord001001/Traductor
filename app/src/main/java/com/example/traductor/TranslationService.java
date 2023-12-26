@@ -6,6 +6,7 @@ import android.os.Binder;
 import android.os.IBinder;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.google.android.gms.tasks.OnFailureListener;
@@ -62,17 +63,41 @@ public class TranslationService extends Service {
                         .build());
     }
 
-    public void identifyLanguageAndTranslate(String text, final TextView translatedTextView) {
+    public void identifyLanguageAndTranslate(String text, final TextView translatedTextView, String targetLanguageCode) {
         languageIdentifier.identifyLanguage(text)
                 .addOnSuccessListener(new OnSuccessListener<String>() {
                     @Override
                     public void onSuccess(String languageCode) {
-                        translateText(text, translatedTextView);
+                        if (languageCode == null || languageCode.equals("und")) {
+                            translatedTextView.setText("Idioma no reconocido o no soportado.");
+                            return;
+                        }
+
+                        TranslatorOptions options = new TranslatorOptions.Builder()
+                                .setSourceLanguage(languageCode)
+                                .setTargetLanguage(targetLanguageCode)
+                                .build();
+                        translator = Translation.getClient(options);
+
+                        translator.downloadModelIfNeeded()
+                                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                    @Override
+                                    public void onSuccess(Void unused) {
+                                        // Traduce el texto
+                                        translateText(text, translatedTextView);
+                                    }
+                                })
+                                .addOnFailureListener(new OnFailureListener() {
+                                    @Override
+                                    public void onFailure(@NonNull Exception e) {
+                                        translatedTextView.setText("Error al descargar el modelo: " + e.getMessage());
+                                    }
+                                });
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
                     @Override
-                    public void onFailure(Exception e) {
+                    public void onFailure(@NonNull Exception e) {
                         translatedTextView.setText("Error al identificar el idioma: " + e.getMessage());
                     }
                 });
