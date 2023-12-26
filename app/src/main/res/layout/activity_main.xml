@@ -1,8 +1,8 @@
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:layout_centerVertical="true"
     android:orientation="vertical"
     android:padding="16dp">
 
@@ -10,12 +10,12 @@
         android:id="@+id/editText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Enter text"/>
+        android:hint="Enter text" />
 
     <Spinner
         android:id="@+id/languageSpinner"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content" />
 
 
     <Button
@@ -24,17 +24,18 @@
         android:layout_height="wrap_content"
         android:text="Translate" />
 
-    <!--LottieAnimationView
+    <!--LottieAnimationView-->
     <com.airbnb.lottie.LottieAnimationView
         android:id="@+id/lottieAnimationView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:lottie_autoPlay="false"
+        android:layout_width="378dp"
+        android:layout_height="100dp"
+        app:lottie_autoPlay="true"
         app:lottie_loop="true"
-        app:lottie_fileName="animation" />-->
+        app:lottie_rawRes="@raw/animation" />
 
     <TextView
         android:id="@+id/translatedText"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="45dp" />
+
 </LinearLayout>
