@@ -17,6 +17,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.airbnb.lottie.LottieAnimationView;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.mlkit.nl.languageid.LanguageIdentification;
@@ -48,17 +49,38 @@ public class MainActivity extends AppCompatActivity {
         Intent serviceIntent = new Intent(this, TranslationService.class);
         bindService(serviceIntent, serviceConnection, Context.BIND_AUTO_CREATE);
 
+        // Ocultamos la animación de Lottie al principio
+        LottieAnimationView lottieView = findViewById(R.id.lottieAnimationView);
+        lottieView.setVisibility(View.INVISIBLE);
+
         findViewById(R.id.translateButton).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (isServiceBound) {
                     String text = inputText.getText().toString();
-                    translationService.identifyLanguageAndTranslate(text, translatedText, targetLanguageCode);
+
+                    // Mostrar la animación
+                    LottieAnimationView lottieView = findViewById(R.id.lottieAnimationView);
+                    lottieView.setVisibility(View.VISIBLE);
+
+                    // Llamar al servicio para identificar el idioma y traducir
+                    translationService.identifyLanguageAndTranslate(text, translatedText, targetLanguageCode, new TranslationService.Callback() {
+                        public void onTranslationCompleted() {
+                            // Ocultar la animación después de completar la traducción
+                            lottieView.setVisibility(View.GONE);
+                        }
+                        public void onTranslationFailed(String errorMessage) {
+                            // Manejar el fallo y ocultar la animación en caso de error
+                            lottieView.setVisibility(View.GONE);
+                            Toast.makeText(MainActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
+                        }
+                    });
                 } else {
                     Toast.makeText(MainActivity.this, "Servicio no vinculado", Toast.LENGTH_SHORT).show();
                 }
             }
         });
+
 
         languageIdentifier = LanguageIdentification.getClient(
                 new LanguageIdentificationOptions.Builder()

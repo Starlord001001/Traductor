@@ -4,6 +4,7 @@ import android.app.Service;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
+import android.view.View;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -63,45 +64,50 @@ public class TranslationService extends Service {
                         .build());
     }
 
-    public void identifyLanguageAndTranslate(String text, final TextView translatedTextView, String targetLanguageCode) {
+    public void identifyLanguageAndTranslate(String text, final TextView translatedTextView, String targetLanguageCode, final Callback callback) {
         languageIdentifier.identifyLanguage(text)
-            .addOnSuccessListener(new OnSuccessListener<String>() {
-                @Override
-                public void onSuccess(String languageCode) {
-                    if (languageCode == null || languageCode.equals("und")) {
-                        translatedTextView.setText("Idioma no reconocido o no soportado.");
-                        return;
+                .addOnSuccessListener(new OnSuccessListener<String>() {
+                    @Override
+                    public void onSuccess(String languageCode) {
+                        if (languageCode == null || languageCode.equals("und")) {
+                            translatedTextView.setText("Idioma no reconocido o no soportado.");
+                            callback.onTranslationFailed("Idioma no reconocido o no soportado.");
+                            return;
+                        }
+
+                        TranslatorOptions options = new TranslatorOptions.Builder()
+                                .setSourceLanguage(languageCode)
+                                .setTargetLanguage(targetLanguageCode)
+                                .build();
+                        translator = Translation.getClient(options);
+
+                        translator.downloadModelIfNeeded()
+                                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                    @Override
+                                    public void onSuccess(Void unused) {
+                                        // Traduce el texto
+                                        translateText(text, translatedTextView);
+                                        callback.onTranslationCompleted();
+                                    }
+                                })
+                                .addOnFailureListener(new OnFailureListener() {
+                                    @Override
+                                    public void onFailure(@NonNull Exception e) {
+                                        translatedTextView.setText("Error al descargar el modelo: " + e.getMessage());
+                                        callback.onTranslationFailed("Error al descargar el modelo: " + e.getMessage());
+                                    }
+                                });
                     }
-
-                    TranslatorOptions options = new TranslatorOptions.Builder()
-                            .setSourceLanguage(languageCode)
-                            .setTargetLanguage(targetLanguageCode)
-                            .build();
-                    translator = Translation.getClient(options);
-
-                    translator.downloadModelIfNeeded()
-                        .addOnSuccessListener(new OnSuccessListener<Void>() {
-                            @Override
-                            public void onSuccess(Void unused) {
-                                // Traduce el texto
-                                translateText(text, translatedTextView);
-                            }
-                        })
-                        .addOnFailureListener(new OnFailureListener() {
-                            @Override
-                            public void onFailure(@NonNull Exception e) {
-                                translatedTextView.setText("Error al descargar el modelo: " + e.getMessage());
-                            }
-                        });
-                }
-            })
-            .addOnFailureListener(new OnFailureListener() {
-                @Override
-                public void onFailure(@NonNull Exception e) {
-                    translatedTextView.setText("Error al identificar el idioma: " + e.getMessage());
-                }
-            });
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        translatedTextView.setText("Error al identificar el idioma: " + e.getMessage());
+                        callback.onTranslationFailed("Error al identificar el idioma: " + e.getMessage());
+                    }
+                });
     }
+
 
     private void translateText(String text, final TextView translatedTextView) {
         translator.translate(text)
@@ -118,4 +124,10 @@ public class TranslationService extends Service {
                     }
                 });
     }
+
+    public interface Callback {
+        void onTranslationCompleted();
+        void onTranslationFailed(String errorMessage);
+    }
+
 }
