@@ -16,6 +16,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.camera.core.ExperimentalGetImage;
 
 import com.airbnb.lottie.LottieAnimationView;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -31,13 +32,13 @@ import com.google.mlkit.nl.translate.TranslatorOptions;
 import java.util.Arrays;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity {
+@ExperimentalGetImage public class MainActivity extends AppCompatActivity  implements CamaraFragment.CameraFragmentListener{
 
     private Translator translator;
     private LanguageIdentifier languageIdentifier;
     private TranslationService translationService;
     private boolean isServiceBound = false;
-    private String targetLanguageCode = TranslateLanguage.ENGLISH; // Idioma de destino predeterminado
+    private String targetLanguageCode = TranslateLanguage.ENGLISH;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,7 +50,6 @@ public class MainActivity extends AppCompatActivity {
         Intent serviceIntent = new Intent(this, TranslationService.class);
         bindService(serviceIntent, serviceConnection, Context.BIND_AUTO_CREATE);
 
-        // Ocultamos la animación de Lottie al principio
         LottieAnimationView lottieView = findViewById(R.id.lottieAnimationView);
         lottieView.setVisibility(View.INVISIBLE);
 
@@ -59,18 +59,14 @@ public class MainActivity extends AppCompatActivity {
                 if (isServiceBound) {
                     String text = inputText.getText().toString();
 
-                    // Mostrar la animación
                     LottieAnimationView lottieView = findViewById(R.id.lottieAnimationView);
                     lottieView.setVisibility(View.VISIBLE);
 
-                    // Llamar al servicio para identificar el idioma y traducir
                     translationService.identifyLanguageAndTranslate(text, translatedText, targetLanguageCode, new TranslationService.Callback() {
                         public void onTranslationCompleted() {
-                            // Ocultar la animación después de completar la traducción
                             lottieView.setVisibility(View.GONE);
                         }
                         public void onTranslationFailed(String errorMessage) {
-                            // Manejar el fallo y ocultar la animación en caso de error
                             lottieView.setVisibility(View.GONE);
                             Toast.makeText(MainActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
                         }
@@ -86,6 +82,12 @@ public class MainActivity extends AppCompatActivity {
                 new LanguageIdentificationOptions.Builder()
                         .setConfidenceThreshold(0.34f)
                         .build());
+        findViewById(R.id.openCameraButton).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                openCameraFragment();
+            }
+        });
     }
 
     private void setupLanguageSpinner() {
@@ -104,6 +106,7 @@ public class MainActivity extends AppCompatActivity {
                 TranslateLanguage.WELSH,
                 TranslateLanguage.DANISH,
                 TranslateLanguage.DUTCH,
+                TranslateLanguage.ESPERANTO,
                 TranslateLanguage.ENGLISH,
                 TranslateLanguage.ESTONIAN,
                 TranslateLanguage.FINNISH,
@@ -149,61 +152,60 @@ public class MainActivity extends AppCompatActivity {
 
 
         List<String> languageNames = Arrays.asList(
-                "Afrikáans",
-                "Árabe",
-                "Bielorruso",
-                "Bengalí",
-                "Búlgaro",
-                "Catalán",
-                "Chino",
-                "Croata",
-                "Checo",
-                "Galés",
-                "Danés",
-                "Holandés",
-                "Inglés",
-                "Estonio",
-                "Finés",
-                "Francés",
-                "Alemán",
-                "Griego",
-                "Gujarati",
-                "Hebreo",
-                "Hindi",
-                "Húngaro",
-                "Islandés",
-                "Indonesio",
-                "Irlandés",
-                "Italiano",
-                "Japonés",
-                "Kannada",
-                "Coreano",
-                "Letón",
-                "Lituano",
-                "Macedonio",
-                "Malayo",
-                "Malayalam",
-                "Maltés",
-                "Marathi",
-                "Noruego",
-                "Persa",
-                "Polaco",
-                "Portugués",
-                "Rumano",
-                "Ruso",
-                "Serbio",
-                "Eslovaco",
-                "Esloveno",
-                "Español",
-                "Suajili",
-                "Sueco",
-                "Tamil",
-                "Telugu",
-                "Tailandés",
-                "Turco",
-                "Ucraniano",
-                "Urdu",
-                "Vietnamita"
+            "Afrikáans",
+            "Árabe",
+            "Bielorruso",
+            "Bengalí",
+            "Búlgaro",
+            "Catalán",
+            "Chino",
+            "Croata",
+            "Checo",
+            "Galés",
+            "Danés",
+            "Holandés",
+            "Esperanto",
+            "Inglés",
+            "Estonio",
+            "Finés",
+            "Francés",
+            "Alemán",
+            "Griego",
+            "Gujarati",
+            "Hebreo",
+            "Hindi",
+            "Húngaro",
+            "Islandés",
+            "Indonesio",
+            "Irlandés",
+            "Italiano",
+            "Japonés",
+            "Kannada",
+            "Coreano",
+            "Letón",
+            "Lituano",
+            "Macedonio",
+            "Malayo",
+            "Maltés",
+            "Marathi",
+            "Noruego",
+            "Persa",
+            "Polaco",
+            "Portugués",
+            "Rumano",
+            "Ruso",
+            "Eslovaco",
+            "Esloveno",
+            "Español",
+            "Suajili",
+            "Sueco",
+            "Tamil",
+            "Telugu",
+            "Tailandés",
+            "Turco",
+            "Ucraniano",
+            "Urdu",
+            "Vietnamita"
         );
 
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, languageNames);
@@ -225,7 +227,6 @@ public class MainActivity extends AppCompatActivity {
 
     private void updateTranslatorLanguage(String targetLanguageCode) {
         this.targetLanguageCode = targetLanguageCode;
-        Toast.makeText(this, targetLanguageCode, Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -252,4 +253,36 @@ public class MainActivity extends AppCompatActivity {
             isServiceBound = false;
         }
     };
+
+    @Override
+    public void onTextRecognizedFromCamera(String recognizedText) {
+        TextView translatedText = findViewById(R.id.translatedText);
+        LottieAnimationView lottieView = findViewById(R.id.lottieAnimationView);
+        lottieView.setVisibility(View.VISIBLE);
+
+        if (isServiceBound) {
+            translationService.identifyLanguageAndTranslate(recognizedText, translatedText, targetLanguageCode, new TranslationService.Callback() {
+                public void onTranslationCompleted() {
+                    lottieView.setVisibility(View.GONE);
+                }
+                public void onTranslationFailed(String errorMessage) {
+                    lottieView.setVisibility(View.GONE);
+                    Toast.makeText(MainActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
+                }
+            });
+        } else {
+            Toast.makeText(MainActivity.this, "Servicio de traducción no disponible", Toast.LENGTH_SHORT).show();
+            lottieView.setVisibility(View.GONE);
+        }
+    }
+
+
+    private void openCameraFragment() {
+        CamaraFragment camaraFragment = new CamaraFragment();
+        camaraFragment.setCameraFragmentListener(this);
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.fragment_container, camaraFragment)
+                .addToBackStack(null)
+                .commit();
+    }
 }

@@ -24,7 +24,18 @@
         android:layout_height="wrap_content"
         android:text="Translate" />
 
+    <Button
+        android:id="@+id/openCameraButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Open Camera" />
+
     <!--LottieAnimationView-->
+    <TextView
+        android:id="@+id/translatedText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
     <com.airbnb.lottie.LottieAnimationView
         android:id="@+id/lottieAnimationView"
         android:layout_width="378dp"
@@ -33,9 +44,10 @@
         app:lottie_loop="true"
         app:lottie_rawRes="@raw/animation" />
 
-    <TextView
-        android:id="@+id/translatedText"
+    <FrameLayout
+        android:id="@+id/fragment_container"
         android:layout_width="match_parent"
-        android:layout_height="45dp" />
+        android:layout_height="0dp"
+        android:layout_weight="1" />
 
 </LinearLayout>

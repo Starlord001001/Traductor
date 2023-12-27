@@ -4,7 +4,6 @@ import android.app.Service;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
-import android.view.View;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -53,7 +52,7 @@ public class TranslationService extends Service {
 
     private void initializeMLKit() {
         TranslatorOptions options = new TranslatorOptions.Builder()
-                .setSourceLanguage("")  // or setSourceLanguage(null)
+                .setSourceLanguage("")
                 .setTargetLanguage(TranslateLanguage.ENGLISH)
                 .build();
         translator = Translation.getClient(options);
@@ -74,7 +73,7 @@ public class TranslationService extends Service {
                             callback.onTranslationFailed("Idioma no reconocido o no soportado.");
                             return;
                         }
-
+                        translatedTextView.setText("Descargando paquete de idioma, por favor espere...");
                         TranslatorOptions options = new TranslatorOptions.Builder()
                                 .setSourceLanguage(languageCode)
                                 .setTargetLanguage(targetLanguageCode)
@@ -85,7 +84,6 @@ public class TranslationService extends Service {
                                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                                     @Override
                                     public void onSuccess(Void unused) {
-                                        // Traduce el texto
                                         translateText(text, translatedTextView);
                                         callback.onTranslationCompleted();
                                     }
